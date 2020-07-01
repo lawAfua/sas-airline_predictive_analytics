@@ -3,7 +3,7 @@ Predictive Analytics for Air Cargo Bookings
 
 Install requirements before running the code 
 
-pip install -r requirements.txtt
+pip install -r requirements.txt
 
 and run the code with following command
 
