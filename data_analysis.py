@@ -8,7 +8,7 @@ sns.set(color_codes=True)
 class DataAnalysis:
 
     def explore_data(self):
-        df = pd.read_csv("/home/neosof/zenx_project/sas_cargo_data/2_SHIPPING_REQUEST_OUT.csv")
+        df = pd.read_csv("/sas_cargo_data/2_SHIPPING_REQUEST_OUT.csv")
         print("=================Show first lines of the csv files==============")
         print(df.head())
         print("=================Describe the files stats==================")
