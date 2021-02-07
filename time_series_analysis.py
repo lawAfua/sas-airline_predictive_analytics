@@ -11,7 +11,7 @@ import seaborn as sns
 
 if __name__ == "__main__":
 
-    df = pd.read_csv("/home/neosof/zenx_project/sas_cargo_data/2_SHIPPING_REQUEST_OUT.csv")
+    df = pd.read_csv("/sas_cargo_data/2_SHIPPING_REQUEST_OUT.csv")
 
     prd_code = df.loc[df['PRD_CODE'] == 'PAA']
     print(prd_code.shape)
