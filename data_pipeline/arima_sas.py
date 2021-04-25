@@ -143,5 +143,5 @@ def predict_sas(df):
 
 # if __name__ == '__main__':
 #
-#     df = pd.read_csv('../Models/merged_features11.csv')
+#     df = pd.read_csv('../Models/feature_file.csv')
 #     predict_sas(df)

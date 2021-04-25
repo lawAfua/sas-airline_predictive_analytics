@@ -20,7 +20,7 @@ def currency_exchange(df1):
 
 if __name__ == '__main__':
     # df = pd.read_csv("features_with_merging.csv", low_memory=False)
-    df = pd.read_csv("merged_features11.csv", low_memory=False)
+    df = pd.read_csv("feature_file.csv", low_memory=False)
 
     df.drop(['linkid', '|linkid|_x', '|linkid|_y', 'PRD_CODE'], inplace=True, axis=1)
 

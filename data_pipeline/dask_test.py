@@ -121,7 +121,7 @@ def get_final_data():
 
     df3 = df3.replace({'[|]': ''}, regex=True)
     return df3
-    # df3.to_csv("merged_features11.csv", index=False)
+    # df3.to_csv("feature_file.csv", index=False)
     # print(df3.shape)
 
     # df3['|PRD|'] = df3['|PRD|'].dropna().apply(lambda x: x.strip('|'))
