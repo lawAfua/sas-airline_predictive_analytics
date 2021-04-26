@@ -10,6 +10,12 @@ from statsmodels.formula.api import ols
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pickle
+from sklearn import metrics
+import numpy as np
+import warnings
+from sklearn.metrics import r2_score
+
+warnings.filterwarnings('ignore')
 
 
 def currency_exchange(df1):
@@ -129,6 +135,26 @@ def train_regression(df):
     # load the model from disk
     loaded_model = pickle.load(open(filename, 'rb'))
     result = loaded_model.score(X_test, y_test)
-    # print(loaded_model.predict(X_test))
+    prediction = loaded_model.predict(X_test)
 
-    print(result)
+    print("Accuracy of random forest regression", result)
+    print(prediction)
+    print(y_test.values)
+
+    accuracy = np.sqrt(metrics.mean_squared_error(y_test.values, prediction))
+    print("RMSE score", accuracy)
+
+    score = r2_score(y_test.values, prediction)
+    print("R2 score", score)
+
+#     plt.plot(y_test.values[:40], label='Actual Requests')
+#     plt.plot(prediction[:40], color='red', label='Predicted Requests')
+#     plt.title('Fright demand prediction using Regression')
+#     plt.xlabel("Day'S")
+#     plt.ylabel('No Of Booking Requests')
+#     plt.legend(loc='upper right', shadow=True)
+#     plt.show()
+#
+#
+# df = pd.read_csv("feature_file.csv", low_memory=False)
+# train_regression(df)

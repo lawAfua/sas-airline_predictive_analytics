@@ -1,13 +1,13 @@
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import PySimpleGUI as sg
-from arima_sas import predict_sas
-from datetime import date
+import time
 from datetime import datetime
+
+import PySimpleGUI as sg
+import pandas as pd
 from dateutil import parser
+from predict_regression import get_regression_prediction
 from statsmodels.tsa.arima_model import ARIMAResults
 from regression_model import train_regression
+from arima_sas import train_arima_sarima
 # sg.theme('BluePurple')
 
 
@@ -28,7 +28,7 @@ def get_final_data(request_inp_file, request_out_file, booking_inp_file, booking
     df = df[['PRD_ID', 'PRD_CODE', 'WGT_CHRG_ACTUAL', 'CURRENCY', 'PRICE', 'TOT_BKFE', 'linkid', 'PI_PART_NAME']]
 
     df['linkid'] = df['linkid'].astype(int)
-    df.drop_duplicates(['linkid'], inplace=True)
+    # df.drop_duplicates(['linkid'], inplace=True)
 
     df1 = pd.read_csv(request_inp_file, low_memory=False)[:64774]
 
@@ -60,6 +60,9 @@ def get_final_data(request_inp_file, request_out_file, booking_inp_file, booking
     df3 = pd.merge(df3, df4, on='linkid', validate="many_to_many")
 
     df3 = df3.replace({'[|]': ''}, regex=True)
+
+    df3.to_csv("feature_file.csv")
+
     return df3
 
 
@@ -101,7 +104,7 @@ layout_3 = [[sg.T("")], [sg.Text('Predict future requests ', justification='cent
             [sg.T(" " * 130), sg.Button('Clear'), sg.Button('Exit')]]
 
 layout = [[sg.TabGroup(
-    [[sg.Tab('Tab 1', layout_1), sg.Tab('Tab 2', layout_2, key='tab2'), sg.Tab('Tab 3', layout_3, key='tab3')]],
+    [[sg.Tab('Merging and Training', layout_1), sg.Tab('Predict date wise', layout_2, key='tab2'), sg.Tab('Predict between date', layout_3, key='tab3')]],
     key='TABGROUP')]]
 
 window = sg.Window('SAS Forecasting', layout, size=(700, 500), finalize=True)
@@ -117,13 +120,17 @@ while True:
     elif event == "Start Merging and Training":
         window['train'].update("DATA MERGING STARTED WILL TAKE LONG TIME BASED ON SYSTEM CONFIGURATION")
         # print("DATA MERGING STARTED WILL TAKE LONG TIME BASED ON SYSTEM CONFIGURATION")
+        # time.sleep(5)
+
         df = get_final_data(values['1_SHIPPING_REQUEST_INP'], values['2_SHIPPING_REQUEST_OUT'],
                             values['3_BOOKING_REQUEST_INP'], values['4_BOOKING_REQUEST_OUT'])
         if df.shape[0]:
-            # print("ARIMA and SARIMA MODEL TRAINING STARTED.... IT WILL TAKE FEW MINUTES")
+            print("ARIMA and SARIMA MODEL TRAINING STARTED.... IT WILL TAKE FEW MINUTES")
             window['train'].update("ARIMA, SARIMA AND REGRESSION MODEL TRAINING STARTED.... IT WILL TAKE FEW MINUTES")
             train_regression(df)
-            predict_sas(df)
+            train_arima_sarima(df)
+            # time.sleep(5)
+            window['train'].update("CONGRATULATIONS ARIMA, SARIMA AND REGRESSION MODEL TRAINING DONE")
     elif event == 'Start prediction':
         date_value = values.get('-CAL-')
 
@@ -150,6 +157,12 @@ while True:
             request_lst.append('SARIMA RESULT')
             request_lst.append(str(abs(int(future.values[-1]))))
 
+            window['Output1'].update('\n'.join(request_lst))
+
+            request_lst.append("REGRESSION RESULT")
+            df = pd.read_csv("feature_file.csv")
+            result = get_regression_prediction(df, day)
+            request_lst.append(str(result[0]))
             window['Output1'].update('\n'.join(request_lst))
 
     elif event == 'Clear':
@@ -179,18 +192,23 @@ while True:
             days = parser.parse(values.get('-CAL1-')) - parser.parse(values.get('-CAL2-'))
             # print(abs(days.days))
             latest_day = abs(days.days)+1
-
+            # print(latest_day)
             print("Predicted Requests From {} To {}".format(values.get('-CAL1-'), values.get('-CAL2-')))
             print("ARIMA RESULT")
             loaded = ARIMAResults.load('model.pkl')
             future = loaded.forecast(steps=day + 1)[0]
-            for req in future[day-latest_day:]:
+            for req in future[day-(latest_day-1):]:
                 print(abs(int(req)))
             print("SARIMA RESULT")
             loaded = ARIMAResults.load('model_sarima.pkl')
             future = loaded.forecast(steps=day + 1)
-            for req in future.values[day-latest_day:]:
+            for req in future.values[day-(latest_day-1):]:
                 print(abs(int(req)))
 
+            print("REGRESSION RESULT")
+            df = pd.read_csv("feature_file.csv")
+            result = get_regression_prediction(df, day)
+            for req in result[day-latest_day:]:
+                print(abs(int(req)))
 
 window.close()

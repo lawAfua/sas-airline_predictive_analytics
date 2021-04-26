@@ -9,7 +9,7 @@ def currency_exchange(df1):
     """this function will convert currencies"""
     c = CurrencyConverter()
     list_price = []
-    print(df1.shape)
+    # print(df1.shape)
     for d in df1.iteritems():
         try:
             list_price.append(c.convert(d[1], d[0], 'DKK'))
@@ -18,9 +18,11 @@ def currency_exchange(df1):
     return list_price
 
 
-if __name__ == '__main__':
-    # df = pd.read_csv("features_with_merging.csv", low_memory=False)
-    df = pd.read_csv("feature_file.csv", low_memory=False)
+# if __name__ == '__main__':
+# df = pd.read_csv("features_with_merging.csv", low_memory=False)
+
+def get_regression_prediction(df, day):
+    # df = pd.read_csv("feature_file.csv", low_memory=False)
 
     df.drop(['linkid', '|linkid|_x', '|linkid|_y', 'PRD_CODE'], inplace=True, axis=1)
 
@@ -50,11 +52,17 @@ if __name__ == '__main__':
 
     filename = 'finalized_model.sav'
 
-    x_pred = X_test[:30].shift(1)
-    X_test = x_pred.iloc[1:]
+    X_test = X_test[:day]
+    # X_test = x_pred.iloc[15:]
 
-    # x_pred = x_pred.dropna(inplace=True)
-    # load the model from disk
     loaded_model = pickle.load(open(filename, 'rb'))
-    result = loaded_model.score(X_test, y_test)
-    print(loaded_model.predict(X_test))
+    result = loaded_model.score(X_test, y_test[:X_test.shape[0]])
+
+    prediction = loaded_model.predict(X_test)
+
+    # print(prediction)
+    return prediction
+
+
+# df = pd.read_csv("merged_features11.csv", low_memory=False)
+# get_regression_prediction(df, 5)

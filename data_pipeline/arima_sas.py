@@ -40,7 +40,7 @@ def adfuller_test(sales):
         print("weak evidence against null hypothesis, time series has a unit root, indicating it is non-stationary ")
 
 
-def predict_sas(df):
+def train_arima_sarima(df):
     df.dropna(inplace=True)
     df["no_of_requests"] = 1
     print(df["no_of_requests"].describe())
