@@ -92,7 +92,7 @@ if __name__ == "__main__":
         except:
             continue
 
-    model = ARIMA(train, order=(3, 1, 4))
+    model = ARIMA(train, order=(4, 1, 4))
     results = model.fit(disp=0)
     prediction = results.forecast(steps=36)[0]
     plt.plot(test.values, label='Actual Requests')
