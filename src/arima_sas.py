@@ -59,6 +59,9 @@ if __name__ == "__main__":
     plt.legend(loc='upper right', shadow=True)
     plt.show()
 
+    df['PRICE'].plot()
+    plt.show()
+
     result = seasonal_decompose(df["no_of_requests"])
     result.plot()
     pyplot.show()

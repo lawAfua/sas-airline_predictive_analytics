@@ -9,6 +9,12 @@ from statsmodels.tsa.arima_model import ARIMAResults
 from regression_model import train_regression
 from arima_sas import train_arima_sarima
 # sg.theme('BluePurple')
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import PySimpleGUI as sg
+import matplotlib
+import matplotlib.pyplot as plt
+
+matplotlib.use('TkAgg')
 
 
 def get_values(value):
@@ -66,6 +72,22 @@ def get_final_data(request_inp_file, request_out_file, booking_inp_file, booking
     return df3
 
 
+def draw_figure(canvas, figure):
+    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
+    figure_canvas_agg.draw()
+    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+    return figure_canvas_agg
+
+
+def dtype_conversion(x):
+    return abs(int(x))
+
+
+def delete_figure_agg(figure_agg):
+    figure_agg.get_tk_widget().forget()
+    plt.close('all')
+
+
 layout_1 = [[sg.T("")], [sg.Text("Select 1_SHIPPING_REQUEST_INP: "),
                          sg.Input(), sg.FileBrowse(key="1_SHIPPING_REQUEST_INP")],
             [sg.Text("Select 2_SHIPPING_REQUEST_OUT:"), sg.Input(), sg.FileBrowse(key="2_SHIPPING_REQUEST_OUT")],
@@ -103,11 +125,16 @@ layout_3 = [[sg.T("")], [sg.Text('Predict future requests ', justification='cent
             [sg.Text("Prediction output", key="text2")], [sg.Output(size=(82, 10), key='Output2')],
             [sg.T(" " * 130), sg.Button('Clear'), sg.Button('Exit')]]
 
+layout4 = [[sg.Text('Sas Plot')],
+          [sg.Canvas(key='-CANVAS-')]]
+
 layout = [[sg.TabGroup(
-    [[sg.Tab('Merging and Training', layout_1), sg.Tab('Predict date wise', layout_2, key='tab2'), sg.Tab('Predict between date', layout_3, key='tab3')]],
+    [[sg.Tab('Merging and Training', layout_1), sg.Tab('Predict date wise', layout_2, key='tab2'), sg.Tab('Predict between date', layout_3, key='tab3'),
+      sg.Tab('Predicted chart', layout4, key='tab4')]],
     key='TABGROUP')]]
 
 window = sg.Window('SAS Forecasting', layout, size=(700, 500), finalize=True)
+fig_canvas_agg = None
 
 while True:
     event, values = window.read()
@@ -197,18 +224,34 @@ while True:
             print("ARIMA RESULT")
             loaded = ARIMAResults.load('model.pkl')
             future = loaded.forecast(steps=day + 1)[0]
+            arima_result = list(map(dtype_conversion, future[day-(latest_day-1):]))
             for req in future[day-(latest_day-1):]:
                 print(abs(int(req)))
+
             print("SARIMA RESULT")
             loaded = ARIMAResults.load('model_sarima.pkl')
             future = loaded.forecast(steps=day + 1)
+            sarima_result = list(map(dtype_conversion, future.values[day-(latest_day-1):]))
             for req in future.values[day-(latest_day-1):]:
                 print(abs(int(req)))
 
             print("REGRESSION RESULT")
             df = pd.read_csv("feature_file.csv")
             result = get_regression_prediction(df, day)
+            regression_result = list(map(dtype_conversion, result[day-latest_day:]))
             for req in result[day-latest_day:]:
                 print(abs(int(req)))
+
+            if fig_canvas_agg:
+                delete_figure_agg(fig_canvas_agg)
+            fig = matplotlib.figure.Figure(figsize=(7, 4), dpi=100)
+
+            fig.add_subplot(111).plot(arima_result, label='Arima Prediction')
+            fig.add_subplot(111).plot(sarima_result, label='Sarima Prediction')
+            fig.add_subplot(111).plot(regression_result, label='Regression Prediction')
+            fig.add_subplot(111).legend(loc='upper right', shadow=True)
+            fig.suptitle('Fright demand prediction')
+
+            fig_canvas_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
 
 window.close()
