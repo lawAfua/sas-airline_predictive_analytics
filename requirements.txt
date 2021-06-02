@@ -94,7 +94,7 @@ toolz==0.11.1
 tornado==6.1
 tqdm==4.46.0
 typing-extensions==3.7.4.3
-urllib3==1.25.10
+urllib3==1.26.5
 vext==0.7.4
 vext.gi==0.7.4
 wasabi==0.8.0
